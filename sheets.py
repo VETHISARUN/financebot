@@ -47,11 +47,23 @@ def get_records_for_month(month=None):
 def aggregate_by_category(month=None):
     recs = get_records_for_month(month)
     agg = {}
+
     for r in recs:
+        # Safely get the amount as float
+        amt = 0
         try:
-            amt = float(r.get("Amount", 0) or 0)
-        except Exception:
-            amt = 0
-        cat = (r.get("Category") or "uncategorized").strip().lower()
+            amt = float(r.get("Amount") or 0)
+        except (ValueError, TypeError):
+            pass
+
+        # Normalize category
+        cat = r.get("Category")
+        if not cat or not isinstance(cat, str):
+            cat = "uncategorized"
+        cat = cat.strip().lower()
+
+        # Aggregate
         agg[cat] = agg.get(cat, 0) + amt
+
     return agg
+
